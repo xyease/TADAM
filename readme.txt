@@ -1,4 +1,4 @@
-our own data for segmentation is in TADAM/examples/data direstory
+our own data for segmentation is in TADAM/examples/data
 
 environment: python 3.5 or 3.6  
 
