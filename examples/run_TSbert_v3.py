@@ -41,7 +41,7 @@ parser.add_argument("--task_name",
                     type=str,
                     help="The name of the task to train.")
 parser.add_argument("--output_dir",
-                    default="model_save_v3_4",
+                    default="model_save_v3",
                     type=str,
                     help="The output directory where the model predictions and checkpoints will be written.")
 
@@ -70,12 +70,12 @@ parser.add_argument("--max_seq_length",
                          "than this will be padded.")
 
 parser.add_argument("--input_cache_dir",
-                    default="input_cache_v3_4",
+                    default="input_cache_v3",
                     type=str,
                     help="Where do you want to store the processed model input")
 
 parser.add_argument("--do_train",
-                    default=True,
+                    default=False,
                     type=bool,
                     help="Whether to run training.")
 
