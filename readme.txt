@@ -1,4 +1,4 @@
-our own data for segmentation is in TADAM/examples/data
+our own data for segmentation is in TADAM/examples/DATASET
 
 environment: python 3.5 or 3.6  
 
