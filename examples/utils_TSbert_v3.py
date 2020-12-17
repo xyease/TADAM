@@ -20,114 +20,10 @@ class DataProcessor(object):
     def get_labels(self):
         """Gets the list of labels for this data set."""
         raise NotImplementedError()
-#
-#     # @classmethod
-#     # def _read_tsv(cls, input_file, quotechar=None):
-#     #     """Reads a tab separated value file."""
-#     #     with open(input_file, "r", encoding="utf-8-sig") as f:
-#     #         reader = csv.reader(f, delimiter="\t", quotechar=quotechar)
-#     #         lines = []
-#     #         for line in reader:
-#     #             if sys.version_info[0] == 2:
-#     #                 line = list(unicode(cell, 'utf-8') for cell in line)
-#     #             lines.append(line)
-#     #         return lines
-#
-# class MyDataProcessorUtt(DataProcessor):
-#     def __init__(self,max_utts=10):
-#         super(DataProcessor, self).__init__()
-#         self.max_utts=max_utts
-#
-#     def get_train_examples(self, data_dir):
-#         """See base class."""
-#         return self._create_examples(data_dir,"train")
-#
-#     def get_dev_examples(self, data_dir):
-#         """See base class."""
-#         return self._create_examples(data_dir, "dev")
-#
-#     def get_test_examples(self, data_dir):
-#         """See base class."""
-#         return self._create_examples(data_dir, "test")
-#
-#     def _create_examples(self, data_dir, set_type):
-#         """Creates examples for the training and dev sets."""
-#         examples_res_lab = []
-#         examples_utt = []
-#         i=0
-#         with open(data_dir,'r',encoding='utf-8') as rf:
-#             for line in rf:
-#                 line=line.strip()
-#                 if(line):
-#                     guid = "%s-%s" % (set_type, i)
-#                     label=line.split("\t")[0]
-#                     res=line.split("\t")[-1]
-#                     examples_res_lab.append(
-#                         InputExample(guid=guid, text_a=res, label=label))
-#
-#                     con_list=line.split("\t")[1:-1][-self.max_utts:]
-#                     con_list_pad=[None for _ in range(self.max_utts-len(con_list))]
-#                     con_list_pad.extend(con_list)
-#                     for utt in con_list_pad:
-#                         examples_utt.append(InputExample(guid=guid, text_a=utt))
-#                     i+=1
-#         return examples_res_lab,examples_utt
-#
-#
-#     def get_labels(self):
-#         """See base class."""
-#         return ["0","1"]
-#
-# class MyDataProcessorSeg(DataProcessor):
-#     def __init__(self,max_segs,train_intv=2,dev_intv=10,test_intv=10):
-#         super(DataProcessor, self).__init__()
-#         self.max_segs=max_segs
-#         self.train_intv=train_intv
-#         self.dev_intv=dev_intv
-#         self.test_intv=test_intv
-#
-#     def get_train_examples(self, data_dir):
-#         """See base class."""
-#         return self._create_examples(data_dir,"train",self.train_intv)
-#
-#     def get_dev_examples(self, data_dir):
-#         """See base class."""
-#         return self._create_examples(data_dir, "dev",self.dev_intv)
-#
-#     def get_test_examples(self, data_dir):
-#         """See base class."""
-#         return self._create_examples(data_dir, "test",self.test_intv)
-#
-#     def get_labels(self):
-#         """See base class."""
-#         return ["0","1"]
-#
-#     def _create_examples(self, data_dir, set_type,inteval):
-#         """Creates examples for the training and dev sets."""
-#         examples_seg = []
-#         i=0
-#         with open(data_dir,'r',encoding='utf-8') as rf:
-#             for line in rf:
-#                 line=line.strip()
-#                 if(line):
-#                     guid = "%s-%s" % (set_type, i)
-#                     seg_list=line.split("\t")[-self.max_segs:]
-#                     seg_list_pad=[None for _ in range(self.max_segs-len(seg_list))]
-#                     seg_list_pad.extend(seg_list)
-#                     for _ in range(inteval):
-#                         for utt in seg_list_pad:
-#                             examples_seg.append(InputExample(guid=guid, text_a=utt))
-#                     i+=1
-#         return examples_seg
-
 
 class MyDataProcessorSegres(DataProcessor):
     def __init__(self):
         super(DataProcessor, self).__init__()
-        # self.train_intv=train_intv
-        # self.dev_intv=dev_intv
-        # self.test_intv=test_intv
-
 
     def get_train_examples(self, data_dir_seg):
         """See base class."""
@@ -222,7 +118,7 @@ def convert_examples_to_features_Segres(examples, label_list,max_seg_num,max_seq
 
         # tokens_a = tokenizer.tokenize(example.text_a)
         tokens_a = []
-        for seg in example.segment[-max_seg_num:]: ##todo
+        for seg in example.segment[-max_seg_num:]:
             tokens_a += tokenizer.tokenize(seg) + [sep_token]
         tokens_a = tokens_a[:-1]  # 去掉最后一个[SEP] s1[SEP]s2[SEP]s3[SEP]S4
 

@@ -141,12 +141,6 @@ def get_dataloader(tokenizer,examples,label_list,tag):
         logger.info("start prepare features_res_lab")
         features = convert_examples_to_features_Segres(
             examples, label_list, max_seg_num=args.max_segment_num,max_seq_length=args.max_seq_length, tokenizer=tokenizer)
-        # logger.info("start prepare features_utt")
-        # features_utt = convert_examples_to_features(
-        #     examples_utt, label_list, args.max_seq_length, tokenizer)
-        # logger.info("start prepare features_seg")
-        # features_seg = convert_examples_to_features(examples_seg, label_list, args.max_seq_length, tokenizer)
-        # # if args.local_rank == -1:
         logger.info("  Saving train features into cached file %s", cached_train_features_file)
         with open(cached_train_features_file, "wb") as writer:
             pickle.dump(features, writer)
@@ -155,15 +149,6 @@ def get_dataloader(tokenizer,examples,label_list,tag):
 
     # logger.info("***** Running training *****")
     logger.info("  Num examples = %d", len(examples))
-    # print(torch.tensor([f.input_ids for f in features_seg], dtype=torch.long).size())
-    # print(torch.tensor([f.input_ids for f in features_utt], dtype=torch.long).size())
-
-    # utt_input_ids = torch.tensor([f.input_ids for f in features_utt], dtype=torch.long). \
-    #     view(-1, args.max_utterance_num, args.max_seq_length)
-    # utt_token_type_ids = torch.tensor([f.segment_ids for f in features_utt], dtype=torch.long). \
-    #     view(-1, args.max_utterance_num, args.max_seq_length)
-    # utt_attention_mask = torch.tensor([f.input_mask for f in features_utt], dtype=torch.long). \
-    #     view(-1, args.max_utterance_num, args.max_seq_length)
 
     seg_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
     seg_token_type_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
@@ -171,17 +156,7 @@ def get_dataloader(tokenizer,examples,label_list,tag):
     cls_sep_pos = torch.tensor([f.cls_sep_pos for f in features], dtype=torch.long)
     true_len = torch.tensor([f.true_len for f in features], dtype=torch.long)
 
-    # res_input_ids = torch.tensor([f.input_ids for f in features_res_lab], dtype=torch.long)
-    # res_token_type_ids = torch.tensor([f.segment_ids for f in features_res_lab], dtype=torch.long)
-    # res_attention_mask = torch.tensor([f.input_mask for f in features_res_lab], dtype=torch.long)
-
     labels = torch.FloatTensor([f.label_id for f in features])
-    # print(utt_input_ids[0]==utt_input_ids[1])
-    # print(seg_input_ids[0] == seg_input_ids[1])
-    # print(utt_input_ids.size(),utt_attention_mask.size(),utt_token_type_ids.size())
-    # print(seg_input_ids.size(),seg_token_type_ids.size(),seg_attention_mask.size())
-    # print(res_input_ids.size(),res_attention_mask.size(),res_token_type_ids.size())
-    # print(labels.size())
     train_data = TensorDataset(seg_input_ids,seg_token_type_ids, seg_attention_mask ,
                                 cls_sep_pos,true_len,labels)
 
@@ -197,10 +172,6 @@ def eval(model,tokenizer,device,myDataProcessorSeg):
     # uttdatafile = os.path.join(args.data_dir, args.task_name, "test.txt")
     segdatafile = os.path.join(args.data_dir, args.task_name, "testseg.txt")
     examples= myDataProcessorSeg.get_test_examples(segdatafile)
-    # examples_seg = myDataProcessorSeg.get_test_examples(segdatafile)
-    # print("dev: len(examples_res_lab)", len(examples_res_lab))
-    # print("dev: len(examples_utt)", len(examples_utt))
-    # print("dev:len(examples_seg)", len(examples_seg))
     label_list = myDataProcessorSeg.get_labels()
     eval_dataloader = get_dataloader(tokenizer, examples,label_list, "valid")
     y_pred = []
@@ -232,11 +203,6 @@ def train(model,tokenizer,device,myDataProcessorSeg,n_gpu):
     best_result = [0, 0, 0, 0, 0, 0]
     # examples_res_lab, examples_utt= myDataProcessorUtt.get_train_examples(uttdatafile)
     examples=myDataProcessorSeg.get_train_examples(segdatafile)
-    # print("train: len(examples_res_lab)", len(examples_res_lab))
-    # print("train: len(examples_utt)", len(examples_utt))
-    # print("train:len(examples_seg)" ,len(examples_seg))
-    # print("examples_utt[0]==examples_utt[10]",examples_utt[0].text_a==examples_utt[10].text_a)
-    # print("examples_seg[0]==examples_seg[5]",examples_seg[0].text_a==examples_seg[5].text_a)
     num_train_optimization_steps = int(
         len(examples) / args.train_batch_size) * args.num_train_epochs
     param_optimizer = list(model.named_parameters())
@@ -303,14 +269,6 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     n_gpu = torch.cuda.device_count()
     set_seed()
-    # args.output_dir=os.path.join(args.data_dir,args.task_name,args.output_dir)
-    # args.temp_score_file_path=os.path.join(args.data_dir,args.task_name,args.temp_score_file_path)
-    # args.input_cache_dir=os.path.join(args.data_dir, args.task_name, args.input_cache_dir)
-    # if not os.path.exists(args.output_dir):
-    #     os.makedirs(args.output_dir)
-    # if not os.path.exists(args.input_cache_dir):
-    #     os.makedirs(args.input_cache_dir)
-    # myDataProcessorUtt = MyDataProcessorUtt(args.max_utterance_num)
     myDataProcessorSeg=MyDataProcessorSegres()
     # label_list = myDataProcessorUtt.get_labels()
     # num_labels = len(label_list)
@@ -320,12 +278,6 @@ def main():
     if args.do_train:
         logger.info("start train...")
         output_model_file = os.path.join(args.output_dir, WEIGHTS_NAME)
-        # if(os.path.exists(output_model_file)):
-        #     logger.info("load dict...")
-        #     model_state_dict = torch.load(output_model_file)
-        #     model = BertForSequenceClassificationTS.from_pretrained(args.bert_model, config=config,
-        #                                                             state_dict=model_state_dict, num_labels=num_labels)
-        # else:
         model = BertForSequenceClassificationTSv3.from_pretrained(args.bert_model,
                                                                     config=config,
                                                                     max_seg_num=args.max_segment_num,

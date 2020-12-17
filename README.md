@@ -19,9 +19,10 @@ Our own dataset for segmentation is under DATASET directory
     
     <code>python segmentation_BERTCLS.py --datapath=data/xxx/xxx.txt</code>
     
-    gather segmented data: data/xxx/xxx_seg.txt:
+    gather segmented data: data/xxx/xxxseg.txt:
     
     set interval = 2 for train.txt, interval = 10 for test.txt
+    set corresponding datafile and dataset in data_process.py
     
     <code>python data_process.py</code>  
     

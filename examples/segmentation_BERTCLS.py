@@ -7,11 +7,11 @@ import os
 
 from pytorch_transformers import BertConfig,  BertModel, BertTokenizer
 from utils_segmentation import convert_examples_to_features, read_expamples_2
-WINDOW_SIZE=2
-SEGMENT_JUMP_STEP=2
-SIMILARITY_THRESHOLD=0.6
-MAX_SEGMENT_ROUND=6
-MAX_SEQ_LENGTH=50
+WINDOW_SIZE = 2
+SEGMENT_JUMP_STEP = 2
+SIMILARITY_THRESHOLD = 0.6
+MAX_SEGMENT_ROUND = 6
+MAX_SEQ_LENGTH = 50
 MODEL_CLASSES = {
     'bert': (BertConfig,  BertModel, BertTokenizer),
 }
