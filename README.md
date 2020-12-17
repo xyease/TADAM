@@ -28,11 +28,11 @@ Our own dataset for segmentation is under DATASET directory
     
 * train
 
-    <code>python run_TSbert_v3.py --task=xxx --do_train</code> 
+    <code>python run_TSbert_v3.py  --task=alime  --do_train  --train_batch_size=20  --learning_rate=2e-5</code> 
     
-    The data will be saved in data/xxx/input_cache_v3 
+    The data will be saved in data/alime/input_cache_v3 
     
-    model will be saved in data/xxx/model_save_v3, training log will also be saved in log.txt
+    model will be saved in data/alime/model_save_v3, training log will also be saved in log.txt
     
 
 * eval
