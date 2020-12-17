@@ -10,6 +10,7 @@ https://www.dropbox.com/s/2fdn26rj6h9bpvl/ubuntudata.zip?dl=0
 Douban
 https://www.dropbox.com/s/90t0qtji9ow20ca/DoubanConversaionCorpus.zip?dl=0&file_subpath=%2FDoubanConversaionCorpus
 
+Our own dataset for segmentation is under DATASET directory
 
 ## Source Code
 * prepare data
