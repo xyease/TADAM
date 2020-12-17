@@ -41,7 +41,7 @@ parser.add_argument("--task_name",
                     type=str,
                     help="The name of the task to train.")
 parser.add_argument("--output_dir",
-                    default="model_save_v3_4",
+                    default="model_save_v3",
                     type=str,
                     help="The output directory where the model predictions and checkpoints will be written.")
 
@@ -53,11 +53,6 @@ parser.add_argument("--log_save_path",
                     default="log.txt",
                     type=str,
                     help="log written when training")
-
-# parser.add_argument("--max_utterance_num",
-#                     default=10,
-#                     type=int,
-#                     help="The maximum total utterance number.")
 parser.add_argument("--max_segment_num",
                     default=10,
                     type=int,
@@ -68,17 +63,14 @@ parser.add_argument("--max_seq_length",
                     help="The maximum total input sequence length after WordPiece tokenization. \n"
                          "Sequences longer than this will be truncated, and sequences shorter \n"
                          "than this will be padded.")
-
 parser.add_argument("--input_cache_dir",
-                    default="input_cache_v3_4",
+                    default="input_cache_v3",
                     type=str,
                     help="Where do you want to store the processed model input")
-
 parser.add_argument("--do_train",
-                    default=True,
                     type=bool,
+                    action='store_true',
                     help="Whether to run training.")
-
 parser.add_argument("--do_lower_case",
                     default=True,
                     type=bool,
@@ -91,10 +83,6 @@ parser.add_argument("--train_batch_size",
                     default=20,
                     type=int,
                     help="Total batch size for training.")
-# parser.add_argument("--eval_batch_size",
-#                     default=4,
-#                     type=int,
-#                     help="Total batch size for eval.")
 parser.add_argument("--learning_rate",
                     default=2e-5,
                     type=float,
@@ -274,9 +262,6 @@ def train(model,tokenizer,device,myDataProcessorSeg,n_gpu):
             model.train()
             batch = tuple(t.to(device) for t in batch)
             seg_input_ids, seg_token_type_ids, seg_attention_mask,cls_sep_pos, true_len,labels = batch
-            # print("utt_input_ids.size()",utt_input_ids.size())
-            # print("seg_input_ids.size()", seg_input_ids.size())
-            # print("res_input_ids.size()",res_input_ids.size())
 
             # define a new function to compute loss values for both output_modes
             logits,loss = model(seg_input_ids,seg_token_type_ids, seg_attention_mask ,cls_sep_pos, true_len,labels)
@@ -289,27 +274,6 @@ def train(model,tokenizer,device,myDataProcessorSeg,n_gpu):
             optimizer.zero_grad()
             logger.info('Epoch{} Batch{} - loss: {:.6f}  batch_size:{}'.format(epoch,step, loss.item(), labels.size(0)) )
             global_step += 1
-            # if(step%4200==0):
-            #     model.eval()
-            #     result = eval(model, tokenizer, device, myDataProcessorUtt, myDataProcessorSeg)
-            #     logger.info("Evaluation Result: \nMAP: %f\tMRR: %f\tP@1: %f\tR1: %f\tR2: %f\tR5: %f",
-            #                 result[0], result[1], result[2], result[3], result[4], result[5])
-            #     if (result[3] + result[4] + result[5] > best_result[3] + best_result[4] + best_result[5]):
-            #         logger.info("save model")
-            #         model_to_save = model
-            #
-            #         output_model_file = os.path.join(args.output_dir, WEIGHTS_NAME)
-            #         output_config_file = os.path.join(args.output_dir, CONFIG_NAME)
-            #
-            #         torch.save(model_to_save.state_dict(), output_model_file)
-            #         model_to_save.config.to_json_file(output_config_file)
-            #         tokenizer.save_vocabulary(args.output_dir)
-            #         best_result = result
-            #
-            #     logger.info("best result")
-            #     logger.info("Best Result: \nMAP: %f\tMRR: %f\tP@1: %f\tR1: %f\tR2: %f\tR5: %f",
-            #                 best_result[0], best_result[1], best_result[2],
-            #                 best_result[3], best_result[4], best_result[5])
 
         logger.info("average loss(:.6f)".format(tr_loss/s))
         # Save a trained model, configuration and tokenizer
@@ -334,39 +298,6 @@ def train(model,tokenizer,device,myDataProcessorSeg,n_gpu):
                      best_result[0], best_result[1], best_result[2],
                      best_result[3],best_result[4],best_result[5] )
 
-# def similar_score(model,tokenizer,device,myDataProcessorSeg):
-#     logger.info("start evaluation")
-#     # uttdatafile = os.path.join(args.data_dir, args.task_name, "test.txt")
-#     segdatafile = os.path.join(args.data_dir, args.task_name, "similartest.txt")
-#     examples= myDataProcessorSeg.get_test_examples(segdatafile)
-#     # examples_seg = myDataProcessorSeg.get_test_examples(segdatafile)
-#     # print("dev: len(examples_res_lab)", len(examples_res_lab))
-#     # print("dev: len(examples_utt)", len(examples_utt))
-#     # print("dev:len(examples_seg)", len(examples_seg))
-#     label_list = myDataProcessorSeg.get_labels()
-#     eval_dataloader = get_dataloader(tokenizer, examples,label_list, "similartest")
-#     y_pred = []
-#     y_label=[]
-#
-#     # metrics = Metrics(args.temp_score_file_path)
-#
-#     for batch in tqdm(eval_dataloader,desc="Evaluating"):
-#         batch = tuple(t.to(device) for t in batch)
-#         seg_input_ids, seg_token_type_ids, seg_attention_mask, \
-#         cls_sep_pos, true_len,labels = batch
-#         y_label+=labels.data.cpu().numpy().tolist()
-#         with torch.no_grad():
-#             logits= model(seg_input_ids, seg_token_type_ids, seg_attention_mask,cls_sep_pos, true_len,labels=None)
-#             y_pred += logits.data.cpu().numpy().tolist()
-#
-#     # with open(args.temp_score_file_path, 'w',encoding='utf-8') as output:
-#     #     for score, label in zip(y_pred, y_label):
-#     #         output.write(
-#     #             str(score) + '\t' +
-#     #             str(int(label)) + '\n'
-#     #         )
-#     # result = metrics.evaluate_all_metrics()
-#     # return result
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

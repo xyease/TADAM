@@ -1,8 +1,8 @@
 import json
-input_file="data/alime/train.txt"
-output_file_seg="data/alime/train_seg.txt"
-cut_list_file="data/alime/cutlist_train.json"
-interval=2
+input_file = "data/alime/train.txt"
+output_file_seg = "data/alime/train_seg.txt"
+cut_list_file = "data/alime/cutlist_train.json"
+interval = 2
 
 def generate_output_file_seg():
     contexts=[]
@@ -41,6 +41,3 @@ def generate_output_file_seg():
 
 
 generate_output_file_seg()
-# with open("data/alime/test_seg.txt",'r',encoding='utf-8') as rf:
-#     for line in rf:
-#         a=line

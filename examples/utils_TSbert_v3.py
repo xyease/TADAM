@@ -2,6 +2,7 @@ import logging
 import numpy as np
 logger = logging.getLogger(__name__)
 from tqdm import tqdm
+
 class DataProcessor(object):
     """Base class for data converters for sequence classification data sets."""
 

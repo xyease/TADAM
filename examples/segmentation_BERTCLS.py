@@ -5,17 +5,17 @@ import argparse
 import numpy as np
 import os
 
-from pytorch_transformers import  BertConfig,  BertModel, BertTokenizer
-from utils_segmentation import convert_examples_to_features,read_expamples_2
+from pytorch_transformers import BertConfig,  BertModel, BertTokenizer
+from utils_segmentation import convert_examples_to_features, read_expamples_2
 WINDOW_SIZE=2
 SEGMENT_JUMP_STEP=2
 SIMILARITY_THRESHOLD=0.6
-MAX_SEGMENT_ROUND=2
-MAX_SEQ_LENGTH=450
+MAX_SEGMENT_ROUND=6
+MAX_SEQ_LENGTH=50
 MODEL_CLASSES = {
     'bert': (BertConfig,  BertModel, BertTokenizer),
 }
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 def similarity(A, B):
     return np.dot(A, B) / (np.linalg.norm(A) * np.linalg.norm(B))
 
@@ -58,7 +58,6 @@ def segmentation(documents):
             final_value=2
             final_cutpoint=len(document)-1
 
-            #TODO WINDOW_SIZE>2时如果左边没有WINDOW_SIZE那么多但还是有句子也可以利用
             if(cut_index-WINDOW_SIZE>0):
                 index=WINDOW_SIZE
                 while(index>0):
@@ -77,7 +76,6 @@ def segmentation(documents):
                 if(i%SEGMENT_JUMP_STEP==SEGMENT_JUMP_STEP-1):
                     bert_input=[]
                     right_sent=""
-                    # TODO WINDOW_SIZE>2时如果右边没有WINDOW_SIZE那么多但还是有句子也可以利用
                     if(cut_index+i+WINDOW_SIZE<len(document)):
                         index=1
                         while(index<=WINDOW_SIZE):
@@ -104,7 +102,7 @@ def segmentation(documents):
                         right_value=similarity(vectors[0],vectors[1]) if right_sent else -1
                     larger_value=left_value if left_value > right_value else right_value
                     if(not left_sent and not right_sent):#防止前后都没有参考窗口，即len(document)<=MAX_SEGMENT_ROUND
-                        #TODO 阈值可以调整
+
                         larger_value=SIMILARITY_THRESHOLD    #如果中间截断的情况的最小相似性都大于0.8则这段通话不进行切分,中间截断的情况只有小于
                                                              #这个阈值才会截断，
                     if(larger_value<final_value):
@@ -129,68 +127,26 @@ def segmentation(documents):
     #     wf.write(json.dumps(all_cut_list, ensure_ascii=False))
     return all_cut_list
 
-def write_segmentation_result(documents,dataset):
-    # print(all_cut_list)
-    with open(args.datapath+"2cutlist_"+dataset+".json",'r') as rf:
-        all_cut_list=json.loads(rf.read())
-    with open(args.datapath+"2cutresult_"+dataset+".txt",'w') as wf:
-        for index in range(len(documents)):
-            wf.write("multi_dialogue"+str(index)+'\n')
-            cut_list=all_cut_list[index]
-            document=documents[index]
-            cutpoint = cut_list[0]
-            label=0
-            index_1=0
-            index_2=0
-            for sentence in document:
-                wf.write(str(label)+" "+sentence+'\n')
-                if (index_1 == cutpoint):
-                    # wf.write('\n')
-                    label+=1
-                    index_2 += 1
-                    if (index_2 < len(cut_list)):
-                        cutpoint = cut_list[index_2]
-                index_1+=1
-
-
 def document_segmentation():
-    for dataset in ["train","test"]:#:["train","valid","test"]
+    for dataset in ["train", "valid","test"]:#:["train","valid","test"]
         print("start",dataset)
         documents=[]
-
-        if (dataset == "test" ):
-            line_num = 0
-            with open(args.datapath + dataset + ".txt", 'r') as rf:
-                for line in rf:
-                    line = line.strip()
-                    # print(line.split("\t"))
-                    if (line):
-                        line_num += 1
-                    if (line and line_num % 10 == 1):
-                        document = []
+        with open(args.datapath+dataset+".txt",'r') as rf:
+            for line in rf:
+                line=line.strip()
+                # print(line.split("\t"))
+                if(line and line.split("\t")[0]=="1"):
+                    if(args.lan=="ch"):
+                        document=[]
                         for utt in line.split("\t")[1:-1]:
                             document.append(''.join(utt.split(" ")))
-                        documents.append(document)
-
-        else:
-            with open(args.datapath+dataset+".txt",'r') as rf:
-                for line in rf:
-                    line=line.strip()
-                    # print(line.split("\t"))
-                    if(line and line.split("\t")[0]=="1"):
-                        if(args.lan=="ch"):
-                            document=[]
-                            for utt in line.split("\t")[1:-1]:
-                                document.append(''.join(utt.split(" ")))
-                        else:
-                            document=line.split("\t")[1:-1]
-                        documents.append(document)
-
+                    else:
+                        document=line.split("\t")[1:-1]
+                    documents.append(document)
         print("len of documents",len(documents))
         all_cut_list=segmentation(documents)
-        with open(args.datapath+"2cutlist_"+dataset+".json",'w') as wf:
+        with open(args.datapath+"cutlist_"+dataset+".json", 'w') as wf:
             wf.write(json.dumps(all_cut_list, ensure_ascii=False))
-        write_segmentation_result(documents, dataset)
 
 
 parser = argparse.ArgumentParser()
@@ -199,7 +155,7 @@ parser.add_argument("--lan",
                     type=str,
                     help="The language of dataset")
 parser.add_argument("--datapath",
-                    default='dataset/DoubanConversaionCorpus/',
+                    default='data/alime/',
                     type=str,
                     help="The path of dataset")
 parser.add_argument("--berttype",
