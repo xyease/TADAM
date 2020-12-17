@@ -15,7 +15,7 @@ Our own dataset for segmentation is under DATASET directory
 ## Source Code
 * prepare data
 
-    generate cutlist
+    generate cutlist.txt 
     
     <code>python segmentation_BERTCLS.py --datapath=data/xxx/xxx.txt</code>
     
