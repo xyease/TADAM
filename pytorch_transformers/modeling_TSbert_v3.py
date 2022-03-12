@@ -6,6 +6,8 @@ import torch.nn.init as init
 import torch.nn.functional as F
 import torch.nn.functional as F
 from torch.autograd import Variable
+
+
 def masked_softmax(vector, mask):
     mask = Variable(mask, requires_grad=False)
     result = torch.nn.functional.softmax(vector * mask, dim=-1)
@@ -68,7 +70,7 @@ class TransformerBlock(nn.Module):
 
 
 class BertForSequenceClassificationTSv3(BertPreTrainedModel):
-    def __init__(self, config, max_seg_num,max_seq_len,device):
+    def __init__(self, config, max_seg_num, max_seq_len, device):
         super(BertForSequenceClassificationTSv3, self).__init__(config)
         self.config=config
         # self.seq_len=seq_len
@@ -163,102 +165,15 @@ class BertForSequenceClassificationTSv3(BertPreTrainedModel):
         :return:
         '''
 
-        # su1, su2, su3, su4 = utt_context.size()
-        # utt_context_ = utt_context.view(-1, su3, su4)  # (batch_size*max_utterances, max_u_words, embedding_dim)
-        # utt_context_ = self.selector_transformer_utt(utt_context_, utt_context_, utt_context_)
-        # utt_context_ = utt_context_.view(su1, su2, su3, su4)
-        #
-        # ss1, ss2, ss3, ss4 = seg_context.size()
-        # seg_context_ = seg_context.view(-1, su3, su4)  # (batch_size*max_segments, max_u_words, embedding_dim)
-        # seg_context_ = self.selector_transformer_seg(seg_context_, seg_context_, seg_context_)
-        # seg_context_ = seg_context_.view(ss1, ss2, ss3, ss4)
-
-        # multi_match_score = []
-        # print("seg_context size",seg_context.size())
-        # key = seg_context[:, -1:, :, :].mean(dim=1)
-        # print("hiskey.size1()", key.size())
-        # key = self.selector_transformer_seg(key, key, key)
-        # print("hiskey.size2()",key.size())
-        #
-        # print("seg_context_.size()",seg_context_.size())
-        # key = seg_context[:, -1:, :, :].mean(dim=1)
-
-        # utt_score1 = self.word_selector(response,segment)
-        # utt_score2 = self.utterance_selector(response,segment)
-        # utt_score = self.alpha * utt_score1 + (1 - self.alpha) * utt_score2
-        # multi_match_score.append(utt_score)
-
         seg_score1 = self.word_selector(response,segment,segment_turnmask)
         seg_score2 = self.utterance_selector(response,segment,segment_turnmask)
         seg_score = self.alpha * seg_score1 + (1 - self.alpha) * seg_score2
 
-        # multi_match_score.append(seg_score)
-
-        # multi_match_score = torch.stack(multi_match_score, dim=-1)  # [batch,max_turn,hop]
-        # match_score = self.linear_score(multi_match_score).squeeze()  # [batch,max_turn]
-
-        # mask_utt = (utt_score >= self.gamma).float()
-        # mask_seg = (seg_score >= self.gamma).float()
-        # match_score_utt = utt_score * mask_utt
-        # match_score_seg=  seg_score*mask_seg
-        # match_score_utt = utt_score
         match_score_seg = seg_score
 
-        # select_utt_context = utt_context * match_score_utt.unsqueeze(dim=-1).unsqueeze(dim=-1)
         select_seg_context = segment * match_score_seg.unsqueeze(dim=-1).unsqueeze(dim=-1)
         return select_seg_context
 
-    # def distance(self, A, B, C, epsilon=1e-6):
-    #     M1 = torch.einsum("bud,dd,brd->bur", [A, B, C])
-    #
-    #     A_norm = A.norm(dim=-1)
-    #     C_norm = C.norm(dim=-1)
-    #     M2 = torch.einsum("bud,brd->bur", [A, C]) / (torch.einsum("bu,br->bur", A_norm, C_norm) + epsilon)
-    #     return M1, M2
-    #
-    #
-    #
-    # def get_Matching_Map_utt(self, bU_embedding, bR_embedding):
-    #     '''
-    #     :param bU_embedding: (batch_size*max_utterances, max_u_words, embedding_dim)
-    #     :param bR_embedding: (batch_size*max_utterances, max_r_words, embedding_dim)
-    #     :return: E: (bsz*max_utterances, max_u_words, max_r_words)
-    #     '''
-    #     # M1 = torch.einsum("bud,dd,brd->bur", bU_embedding, self.A1, bR_embedding)  # (bsz*max_utterances, max_u_words, max_r_words)
-    #     MU1, MU2 = self.distance(bU_embedding, self.AU1, bR_embedding)
-    #     # Hu = self.transformer_utt(bU_embedding, bU_embedding, bU_embedding)
-    #     # Hr = self.transformer_res(bR_embedding, bR_embedding, bR_embedding)
-    #     # # M2 = torch.einsum("bud,dd,brd->bur", [Hu, self.A2, Hr])
-    #     # MU3, MU4 = self.distance(Hu, self.AU2, Hr)
-    #     Hur = self.transformer_ur(bU_embedding, bR_embedding, bR_embedding)
-    #     Hru = self.transformer_ru(bR_embedding, bU_embedding, bU_embedding)
-    #     # M3 = torch.einsum("bud,dd,brd->bur", [Hur, self.A3, Hru])
-    #     MU5, MU6 = self.distance(Hur, self.AU3, Hru)
-    #
-    #     MU = torch.stack([MU1, MU2,  MU5, MU6], dim=1)# (bsz*max_utterances, channel, max_u_words, max_r_words)
-    #     return MU
-
-    # def UR_Matching_utt(self, bU_embedding, bR_embedding):
-    #     '''
-    #     :param bU_embedding: (batch_size*max_utterances, max_u_words, embedding_dim)
-    #     :param bR_embedding: (batch_size*max_utterances, max_r_words, embedding_dim)
-    #     :return: (bsz*max_utterances, (max_u_words - width)/stride + 1, (max_r_words -height)/stride + 1, channel)
-    #     '''
-    #     M= self.get_Matching_Map_utt(bU_embedding, bR_embedding)
-    #
-    #     Z = self.relu(self.utt_cnn_2d_1(M)) #50*50 48*48
-    #     Z = self.utt_maxpooling1(Z)#24*24
-    #
-    #     Z = self.relu(self.utt_cnn_2d_2(Z)) #22*22
-    #     Z =self.utt_maxpooling2(Z) #11*11
-    #
-    #     Z = self.relu(self.utt_cnn_2d_3(Z)) #9*9
-    #     Z =self.utt_maxpooling3(Z) #batch_size*max_utterances, 64,3,3
-    #
-    #     Z = Z.view(Z.size(0), -1)  # (bsz*max_utterances, *)
-    #
-    #     V = self.tanh(self.utt_affine2(Z))   # (bsz*max_utterances, 300)
-    #     return V
 
     def MatchingNet(self,select_seg_context,segment_mask_seg,response_seg,response_mask_seg):
         '''
@@ -269,25 +184,16 @@ class BertForSequenceClassificationTSv3(BertPreTrainedModel):
         :param response_mask_seg: batchsize(*max_segment_num),dim*2
         :return:
         '''
-        Hur = self.transformer_ur(select_seg_context, response_seg,response_seg,response_mask_seg)
+        Hur = self.transformer_ur(select_seg_context, response_seg, response_seg, response_mask_seg)
         Hru = self.transformer_ru(response_seg,select_seg_context,select_seg_context,segment_mask_seg)
         result=torch.cat([torch.mean(Hur,dim=1), torch.mean(Hru,dim=1) ], dim=1)
         return result
 
     def forward(self, seg_input_ids,seg_token_type_ids, seg_attention_mask,cls_sep_pos,true_len,labels=None):
         self.utt_gru_acc.flatten_parameters()
-        # b,u,w=utt_input_ids.size()
-        # _,s,_=seg_input_ids.size()
-        #utt_input_ids=(batchsize,max_utts,max_words)
-        #seg_input_ids=(batchsize,max_segs,max_words)
-        #res_input_ids=(batchsize,max_words)
-
         b, s = seg_input_ids.size()
         n = cls_sep_pos.size()[1] - 2
         # print(cls_sep_pos.size())
-        # utt_sequence_output, utt_sequence_pool = self.bert(utt_input_ids.view(-1,w),attention_mask=utt_attention_mask.view(-1,w),token_type_ids=utt_token_type_ids.view(-1,w))
-        # seg_sequence_output, seg_sequence_pool = self.bert(seg_input_ids.view(-1,w),attention_mask= seg_attention_mask.view(-1,w),token_type_ids=seg_token_type_ids.view(-1,w),)
-        # res_sequence_output, res_sequence_pool = self.bert(res_input_ids, attention_mask=res_attention_mask,token_type_ids=res_token_type_ids)
 
         sequence_output, pooled_output = self.bert(input_ids=seg_input_ids,
                                                    attention_mask=seg_attention_mask,
@@ -355,7 +261,7 @@ class BertForSequenceClassificationTSv3(BertPreTrainedModel):
         V_seg = self.MatchingNet(select_seg_context,segment_mask_seg,res_sequence_output_seg,response_mask_seg)
         V_seg=V_seg.view(b, n, 2*d)
 
-        V_key = self.MatchingNet(segment[:, -1:, :, :].mean(dim=1),segment_mask[:, -1:, :].mean(dim=1), response,response_mask)  # (bsz,2dim)
+        V_key = self.MatchingNet(segment[:, -1:, :, :].mean(dim=1), segment_mask[:, -1:, :].mean(dim=1), response,response_mask)  # (bsz,2dim)
 
         # H_utt, _ = self.utt_gru_acc(V_utt)  # (bsz, max_utterances, rnn2_hidden)
         H_seg, _ = self.utt_gru_acc(V_seg)  # (bsz, max_segments, rnn2_hidden)
@@ -374,3 +280,4 @@ class BertForSequenceClassificationTSv3(BertPreTrainedModel):
             return logits,loss
         else:
             return logits
+

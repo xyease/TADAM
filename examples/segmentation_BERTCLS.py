@@ -135,7 +135,7 @@ def document_segmentation():
             for line in rf:
                 line=line.strip()
                 # print(line.split("\t"))
-                if(line and line.split("\t")[0]=="1"):
+                if(line and line.split("\t")[0]=="1"): # need special process for douban
                     if(args.lan=="ch"):
                         document=[]
                         for utt in line.split("\t")[1:-1]:
@@ -143,7 +143,7 @@ def document_segmentation():
                     else:
                         document=line.split("\t")[1:-1]
                     documents.append(document)
-        print("len of documents",len(documents))
+        print("len of documents", len(documents))
         all_cut_list=segmentation(documents)
         with open(args.datapath+"cutlist_"+dataset+".json", 'w') as wf:
             wf.write(json.dumps(all_cut_list, ensure_ascii=False))

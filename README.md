@@ -39,7 +39,7 @@ Our own dataset for segmentation is under DATASET directory
 
     <code>python run_TSbert_v3.py --task=xxx</code> 
     
-    You can also load our trained model for testing https://jbox.sjtu.edu.cn/l/5odMwy
+    You can also load our trained model for testing https://drive.google.com/drive/folders/1_sRSmwlaAK_TPaVYYNhao81rXUW92z98?usp=sharing
    
 ### Environment:
 we use pre-trained BERT of pytorch version from https://github.com/huggingface/transformers
